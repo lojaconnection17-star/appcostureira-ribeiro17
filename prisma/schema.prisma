@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Cliente {
+  id        String   @id @default(cuid())
+  nome      String
+  telefone  String?
+  email     String?
+  endereco  String?
+  observacoes String?
+  medidas   Medida?
+  encomendas Encomenda[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Medida {
+  id        String   @id @default(cuid())
+  clienteId String   @unique
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  busto     Float?
+  cintura   Float?
+  quadril   Float?
+  ombro     Float?
+  manga     Float?
+  comprimentoVestido Float?
+  comprimentoCalca Float?
+  entreperna Float?
+  cinturaAltura Float?
+  larguraCostas Float?
+  profundidadeBusto Float?
+  joelho    Float?
+  tornozelo Float?
+  barra     Float?
+  observacoes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Servico {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  precoBase   Float    @default(0)
+  ativo       Boolean  @default(true)
+  itens       ItemEncomenda[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Encomenda {
+  id            String   @id @default(cuid())
+  numero        Int      @unique @default(autoincrement())
+  clienteId     String
+  cliente       Cliente  @relation(fields: [clienteId], references: [id])
+  status        String   @default("ORCAMENTO") // ORCAMENTO, APROVADO, EM_PRODUCAO, PRONTO, ENTREGUE, CANCELADO
+  dataEntrada   DateTime @default(now())
+  dataPrevisao  DateTime?
+  dataEntrega   DateTime?
+  valorTotal    Float    @default(0)
+  valorPago     Float    @default(0)
+  desconto      Float    @default(0)
+  observacoes   String?
+  itens         ItemEncomenda[]
+  pagamentos    Pagamento[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ItemEncomenda {
+  id          String    @id @default(cuid())
+  encomendaId String
+  encomenda   Encomenda @relation(fields: [encomendaId], references: [id], onDelete: Cascade)
+  servicoId   String?
+  servico     Servico?  @relation(fields: [servicoId], references: [id])
+  descricao   String
+  quantidade  Int       @default(1)
+  precoUnit   Float     @default(0)
+  subtotal    Float     @default(0)
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Pagamento {
+  id          String    @id @default(cuid())
+  encomendaId String
+  encomenda   Encomenda @relation(fields: [encomendaId], references: [id], onDelete: Cascade)
+  valor       Float
+  forma       String    // DINHEIRO, PIX, CARTAO, TRANSFERENCIA
+  data        DateTime  @default(now())
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
